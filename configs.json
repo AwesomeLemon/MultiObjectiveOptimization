@@ -1,6 +1,6 @@
 {
     "mnist": {
-        "path": "PATH_FOR_MULTIMNIST_DATASET",
+        "path": "/datasets/mnist/multiMNIST",
         "all_tasks": ["L", "R"]
     },
 

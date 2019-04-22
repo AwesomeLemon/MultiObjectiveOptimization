@@ -15,15 +15,14 @@ from torch.utils import data
 import torchvision
 import types
 
-from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
-from models.gradient_scaler import MinNormElement
 import losses
 import datasets
 import metrics
 import model_selector
-from min_norm_solvers import MinNormSolver, gradient_normalizers
+from min_norm_solvers import MinNormSolver
+from min_norm_solvers import gradient_normalizers
 
 NUM_EPOCHS = 100
 
@@ -46,7 +45,7 @@ def train_multi_task(param_file):
     exp_identifier = '|'.join(exp_identifier)
     params['exp_id'] = exp_identifier
 
-    writer = SummaryWriter(log_dir='runs/{}_{}'.format(params['exp_id'], datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")))
+    #writer = SummaryWriter(log_dir='runs/{}_{}'.format(params['exp_id'], datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")))
 
     train_loader, train_dst, val_loader, val_dst = datasets.get_dataset(params, configs)
     loss_fn = losses.get_loss(params)
@@ -76,7 +75,7 @@ def train_multi_task(param_file):
             print('Using full solver')
     n_iter = 0
     loss_init = {}
-    for epoch in tqdm(range(NUM_EPOCHS)):
+    for epoch in range(NUM_EPOCHS):
         start = timer()
         print('Epoch {} Started'.format(epoch))
         if (epoch+1) % 10 == 0:
@@ -131,7 +130,7 @@ def train_multi_task(param_file):
                         optimizer.zero_grad()
                         out_t, masks[t] = model[t](rep_variable, None)
                         loss = loss_fn[t](out_t, labels[t])
-                        loss_data[t] = loss.data[0]
+                        loss_data[t] = loss.data.item()
                         loss.backward()
                         grads[t] = []
                         if list_rep:
@@ -170,13 +169,14 @@ def train_multi_task(param_file):
                     masks[t] = None
                     scale[t] = float(params['scales'][t])
 
+            print(scale)
             # Scaled back-propagation
             optimizer.zero_grad()
             rep, _ = model['rep'](images, mask)
             for i, t in enumerate(tasks):
                 out_t, _ = model[t](rep, masks[t])
                 loss_t = loss_fn[t](out_t, labels[t])
-                loss_data[t] = loss_t.data[0]
+                loss_data[t] = loss_t.item()
                 if i > 0:
                     loss = loss + scale[t]*loss_t
                 else:
@@ -184,9 +184,10 @@ def train_multi_task(param_file):
             loss.backward()
             optimizer.step()
 
-            writer.add_scalar('training_loss', loss.data[0], n_iter)
+            #writer.add_scalar('training_loss', loss.data[0], n_iter)
             for t in tasks:
-                writer.add_scalar('training_loss_{}'.format(t), loss_data[t], n_iter)
+                pass
+             #   writer.add_scalar('training_loss_{}'.format(t), loss_data[t], n_iter)
 
         for m in model:
             model[m].eval()
@@ -219,12 +220,13 @@ def train_multi_task(param_file):
             num_val_batches+=1
 
         for t in tasks:
-            writer.add_scalar('validation_loss_{}'.format(t), tot_loss[t]/num_val_batches, n_iter)
+            #writer.add_scalar('validation_loss_{}'.format(t), tot_loss[t]/num_val_batches, n_iter)
             metric_results = metric[t].get_result()
             for metric_key in metric_results:
-                writer.add_scalar('metric_{}_{}'.format(metric_key, t), metric_results[metric_key], n_iter)
+                pass
+                #writer.add_scalar('metric_{}_{}'.format(metric_key, t), metric_results[metric_key], n_iter)
             metric[t].reset()
-        writer.add_scalar('validation_loss', tot_loss['all']/len(val_dst), n_iter)
+        #writer.add_scalar('validation_loss', tot_loss['all']/len(val_dst), n_iter)
 
         if epoch % 3 == 0:
             # Save after every 3 epoch
