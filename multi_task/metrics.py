@@ -40,7 +40,7 @@ class RunningMetric(object):
     def update(self, pred, gt):
         if self._metric_type == 'ACC':
             predictions = pred.data.max(1, keepdim=True)[1]
-            self.accuracy += (predictions.eq(gt.data.view_as(predictions)).cpu().sum()) 
+            self.accuracy += (predictions.eq(gt.data.view_as(predictions)).cpu().sum()).item()
             self.num_updates += predictions.shape[0]
     
         if self._metric_type == 'L1':
