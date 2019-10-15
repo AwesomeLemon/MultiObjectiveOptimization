@@ -1,8 +1,6 @@
 # Adapted from: https://github.com/CSAILVision/semantic-segmentation-pytorch/blob/master/models/models.py
 
-import torch.nn as nn
-
-from models.segnet_utils import *
+from multi_task.models.segnet_utils import *
 
 class SegnetSegmentationDecoder(nn.Module):
     def __init__(self, n_classes=21, in_channels=64):

@@ -1,7 +1,9 @@
 import os
 import torch
 import numpy as np
-import scipy.misc as m
+# import scipy.misc as m
+import skimage
+import imageio
 import re
 import glob
 
@@ -75,7 +77,7 @@ class CELEBA(data.Dataset):
         """
         img_path = self.files[self.split][index].rstrip()
         label = self.labels[self.split][index]
-        img = m.imread(img_path)
+        img = imageio.imread(img_path)
 
         if self.augmentations is not None:
             img = self.augmentations(np.array(img, dtype=np.uint8))
@@ -92,7 +94,7 @@ class CELEBA(data.Dataset):
         img = img[:, :, ::-1]
         img = img.astype(np.float64)
         img -= self.mean
-        img = m.imresize(img, (self.img_size[0], self.img_size[1]))
+        img = skimage.transform.resize(img, (self.img_size[0], self.img_size[1]))
         # Resize scales images from 0 to 255, thus we need
         # to divide by 255.0
         img = img.astype(float) / 255.0
@@ -106,24 +108,27 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
 
-    local_path = 'CELEB_A_PATH'
+    local_path = "/mnt/raid/data/chebykin/celeba"
     dst = CELEBA(local_path, is_transform=True, augmentations=None)
-    bs = 4
+    bs = 1
     trainloader = data.DataLoader(dst, batch_size=bs, num_workers=0)
 
     for i, data in enumerate(trainloader):
-        imgs = imgs.numpy()[:, ::-1, :, :]
+        imgs = data[0].numpy()[:, ::-1, :, :]
         imgs = np.transpose(imgs, [0,2,3,1])
 
-        f, axarr = plt.subplots(bs,4)
-        for j in range(bs):
-            axarr[j][0].imshow(imgs[j])
-            axarr[j][1].imshow(dst.decode_segmap(labels.numpy()[j]))
-            axarr[j][2].imshow(instances[j,0,:,:])
-            axarr[j][3].imshow(instances[j,1,:,:])
+        plt.imshow(imgs[0])
+        plt.title(data[5].numpy())
+        # f, axarr = plt.subplots(bs,4, squeeze=False)
+        #
+        # for j in range(bs):
+        #     axarr[j][0].imshow(imgs[j])
+            # axarr[j][1].imshow(dst.decode_segmap(labels.numpy()[j]))
+            # axarr[j][2].imshow(imgs[j,0,:,:])
+            # axarr[j][3].imshow(imgs[j,1,:,:])
         plt.show()
-        a = raw_input()
-        if a == 'ex':
-            break
-        else:
-            plt.close()
+        # a = raw_input()
+        # if a == 'ex':
+        #     break
+        # else:
+        #     plt.close()

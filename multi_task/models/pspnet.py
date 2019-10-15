@@ -2,8 +2,7 @@
 
 import torch
 import torch.nn as nn
-import torchvision
-import models.resnet_mit as resnet
+from multi_task import models as resnet
 
 
 def get_segmentation_encoder():

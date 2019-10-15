@@ -249,7 +249,7 @@ if __name__ == '__main__':
         return transforms.Compose([transforms.ToTensor(),
                                    transforms.Normalize((0.1307,), (0.3081,))])
 
-    dst = MNIST(root='/home/ozansener/Data/MultiMNIST/', train=True, download=True, transform=global_transformer(), multi=True)
+    dst = MNIST(root='/tmp/pycharm_project_84/datasets/mnist/MultiMNIST/', train=True, download=True, transform=global_transformer(), multi=True)
     loader = torch.utils.data.DataLoader(dst, batch_size=10, shuffle=True, num_workers=4)
     for dat in loader:
         ims = dat[0].view(10,28,28).numpy()

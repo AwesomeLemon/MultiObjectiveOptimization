@@ -45,7 +45,10 @@ def train_multi_task(param_file):
     exp_identifier = '|'.join(exp_identifier)
     params['exp_id'] = exp_identifier
 
-    writer = SummaryWriter(log_dir='runs/{}_{}'.format(params['exp_id'], datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")))
+    log_dir_name = '/mnt/raid/data/chebykin/runs/{}_{}'.format(params['exp_id'], datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"))
+    if len(log_dir_name) > 255:
+        log_dir_name = '/mnt/raid/data/chebykin/runs/{}'.format(datetime.datetime.now().strftime("%I_%M%p_on_%B_%d_%Y"))
+    writer = SummaryWriter(log_dir=log_dir_name)
 
     train_loader, train_dst, val_loader, val_dst = datasets.get_dataset(params, configs)
     loss_fn = losses.get_loss(params)
@@ -78,16 +81,17 @@ def train_multi_task(param_file):
     for epoch in range(NUM_EPOCHS):
         start = timer()
         print('Epoch {} Started'.format(epoch))
-        if (epoch+1) % 10 == 0:
+        if (epoch+1) % 30 == 0:
             # Every 50 epoch, half the LR
             for param_group in optimizer.param_groups:
-                param_group['lr'] *= 0.85
+                param_group['lr'] *= 0.5
             print('Half the learning rate{}'.format(n_iter))
 
         for m in model:
             model[m].train()
 
         for batch in train_loader:
+            # print(n_iter)
             n_iter += 1
             # First member is always images
             images = batch[0]
@@ -186,9 +190,10 @@ def train_multi_task(param_file):
 
             writer.add_scalar('training_loss', loss.item(), n_iter)
             for t in tasks:
-                # pass
-               writer.add_scalar('training_loss_{}'.format(t), loss_data[t], n_iter)
+                writer.add_scalar('training_loss_{}'.format(t), loss_data[t], n_iter)
+                writer.add_scalar('scale_{}'.format(t), scale[t], n_iter)
 
+        # print('got to evaluating models')
         for m in model:
             model[m].eval()
 
@@ -241,7 +246,10 @@ def train_multi_task(param_file):
                 key_name = 'model_{}'.format(t)
                 state[key_name] = model[t].state_dict()
 
-            torch.save(state, "saved_models/{}_{}_model.pkl".format(params['exp_id'], epoch+1))
+            save_model_path = "/mnt/raid/data/chebykin/saved_models/{}_{}_model.pkl".format(params['exp_id'], epoch + 1)
+            if len(save_model_path) > 255:
+                save_model_path = "/mnt/raid/data/chebykin/saved_models/" + "{}".format(params['exp_id'])[:200] + "_{}_model.pkl".format(epoch + 1)
+            torch.save(state, save_model_path)
 
         end = timer()
         print('Epoch ended in {}s'.format(end - start))
