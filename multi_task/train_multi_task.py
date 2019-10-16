@@ -27,7 +27,7 @@ from min_norm_solvers import gradient_normalizers
 NUM_EPOCHS = 100
 
 @click.command()
-@click.option('--param_file', default='params.json', help='JSON parameters file')
+@click.option('--param_file', default='sample.json', help='JSON parameters file')
 def train_multi_task(param_file):
     with open('configs.json') as config_params:
         configs = json.load(config_params)

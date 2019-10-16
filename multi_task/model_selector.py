@@ -1,6 +1,7 @@
-from multi_task.models import MultiLeNetO, MultiLeNetR
-from multi_task.models import SegmentationDecoder, get_segmentation_encoder
-from multi_task.models import ResNet, FaceAttributeDecoder, BasicBlock
+from models.multi_lenet import MultiLeNetO, MultiLeNetR
+from models.segnet import SegnetEncoder, SegnetInstanceDecoder, SegnetSegmentationDecoder, SegnetDepthDecoder
+from models.pspnet import SegmentationDecoder, get_segmentation_encoder
+from models.multi_faces_resnet import ResNet, FaceAttributeDecoder, BasicBlock
 import torchvision.models as model_collection
 
 
