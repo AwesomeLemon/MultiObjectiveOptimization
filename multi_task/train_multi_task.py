@@ -228,13 +228,20 @@ def train_multi_task(param_file):
                     # print(metric[t].get_result())
                 num_val_batches+=1
 
+        error_sum = 0
         for t in tasks:
             writer.add_scalar('validation_loss_{}'.format(t), tot_loss[t]/num_val_batches, n_iter)
             metric_results = metric[t].get_result()
             for metric_key in metric_results:
                 # pass
                 writer.add_scalar('metric_{}_{}'.format(metric_key, t), metric_results[metric_key], n_iter)
+                error_sum += 1 - metric_results[metric_key]
+
             metric[t].reset()
+
+        error_sum /= float(len(tasks))
+        writer.add_scalar('average_error', error_sum * 100, n_iter)
+
         writer.add_scalar('validation_loss', tot_loss['all']/len(val_dst), n_iter)
 
         if epoch % 3 == 0:
