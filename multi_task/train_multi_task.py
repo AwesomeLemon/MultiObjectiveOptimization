@@ -1,3 +1,5 @@
+import os
+import re
 import sys
 import torch
 import click
@@ -45,9 +47,19 @@ def train_multi_task(param_file):
     exp_identifier = '|'.join(exp_identifier)
     params['exp_id'] = exp_identifier
 
-    log_dir_name = '/mnt/raid/data/chebykin/runs/{}_{}'.format(params['exp_id'], datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"))
+    time_str = datetime.datetime.now().strftime("%H_%M_on_%B_%d")
+    log_dir_name = '/mnt/antares_raid/home/awesomelemon/runs7/{}_{}'.format(params['exp_id'],
+                                                                            time_str)
+    log_dir_name = re.sub(r'\s+', '_', log_dir_name)
+    log_dir_name = re.sub(r"'", '_', log_dir_name)
+    log_dir_name = re.sub(r'"', '_', log_dir_name)
+    log_dir_name = re.sub(r':', '_', log_dir_name)
+    log_dir_name = re.sub(r',', '|', log_dir_name)
+    print(log_dir_name)
+
     if len(log_dir_name) > 255:
-        log_dir_name = '/mnt/raid/data/chebykin/runs/{}'.format(datetime.datetime.now().strftime("%I_%M%p_on_%B_%d_%Y"))
+        log_dir_name = '/mnt/antares_raid/home/awesomelemon/runs7/{}'.format(
+            time_str)
     writer = SummaryWriter(log_dir=log_dir_name)
 
     train_loader, train_dst, val_loader, val_dst = datasets.get_dataset(params, configs)
@@ -91,7 +103,7 @@ def train_multi_task(param_file):
             model[m].train()
 
         for batch in train_loader:
-            # print(n_iter)
+            print(n_iter)
             n_iter += 1
             # First member is always images
             images = batch[0]
@@ -253,9 +265,24 @@ def train_multi_task(param_file):
                 key_name = 'model_{}'.format(t)
                 state[key_name] = model[t].state_dict()
 
-            save_model_path = "/mnt/raid/data/chebykin/saved_models/{}_{}_model.pkl".format(params['exp_id'], epoch + 1)
+            saved_models_prefix = '/mnt/raid/data/chebykin/saved_models/{}'.format(time_str)
+            if not os.path.exists(saved_models_prefix):
+                os.makedirs(saved_models_prefix)
+
+            save_model_path = saved_models_prefix + "/{}_{}_model.pkl".format(params['exp_id'], epoch + 1)
+            save_model_path = re.sub(r'\s+', '_', save_model_path)
+            save_model_path = re.sub(r"'", '_', save_model_path)
+            save_model_path = re.sub(r'"', '_', save_model_path)
+            save_model_path = re.sub(r':', '_', save_model_path)
+            save_model_path = re.sub(r',', '|', save_model_path)
             if len(save_model_path) > 255:
-                save_model_path = "/mnt/raid/data/chebykin/saved_models/" + "{}".format(params['exp_id'])[:200] + "_{}_model.pkl".format(epoch + 1)
+                save_model_path = saved_models_prefix + "/{}".format(params['exp_id'])[
+                                                        :200] + "_{}_model.pkl".format(epoch + 1)
+                save_model_path = re.sub(r'\s+', '_', save_model_path)
+                save_model_path = re.sub(r"'", '_', save_model_path)
+                save_model_path = re.sub(r'"', '_', save_model_path)
+                save_model_path = re.sub(r':', '_', save_model_path)
+                save_model_path = re.sub(r',', '|', save_model_path)
             torch.save(state, save_model_path)
 
         end = timer()
