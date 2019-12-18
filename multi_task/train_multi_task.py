@@ -48,7 +48,7 @@ def train_multi_task(param_file):
     params['exp_id'] = exp_identifier
 
     time_str = datetime.datetime.now().strftime("%H_%M_on_%B_%d")
-    log_dir_name = '/mnt/antares_raid/home/awesomelemon/runs7/{}_{}'.format(params['exp_id'],
+    log_dir_name = '/mnt/antares_raid/home/awesomelemon/runs_moo/{}_{}'.format(params['exp_id'],
                                                                             time_str)
     log_dir_name = re.sub(r'\s+', '_', log_dir_name)
     log_dir_name = re.sub(r"'", '_', log_dir_name)
@@ -58,7 +58,7 @@ def train_multi_task(param_file):
     print(log_dir_name)
 
     if len(log_dir_name) > 255:
-        log_dir_name = '/mnt/antares_raid/home/awesomelemon/runs7/{}'.format(
+        log_dir_name = '/mnt/antares_raid/home/awesomelemon/runs_moo/{}'.format(
             time_str)
     writer = SummaryWriter(log_dir=log_dir_name)
 
@@ -75,6 +75,8 @@ def train_multi_task(param_file):
         optimizer = torch.optim.RMSprop(model_params, lr=params['lr'])
     elif 'Adam' in params['optimizer']:
         optimizer = torch.optim.Adam(model_params, lr=params['lr'])
+    elif 'AdamW' in params['optimizer']:
+        optimizer = torch.optim.AdamW(model_params, lr=params['lr'], weight_decay=0.8)
     elif 'SGD' in params['optimizer']:
         optimizer = torch.optim.SGD(model_params, lr=params['lr'], momentum=0.9)
 
@@ -90,6 +92,7 @@ def train_multi_task(param_file):
             print('Using full solver')
     n_iter = 0
     loss_init = {}
+    print('Got here!')
     for epoch in range(NUM_EPOCHS):
         start = timer()
         print('Epoch {} Started'.format(epoch))
